@@ -1,4 +1,4 @@
-// localStorage version — no backend needed
+// Static version — localStorage (Backend illa)
 
 let allAssignments = [];
 let currentFilter = 'All';
@@ -29,6 +29,7 @@ function loadFromStorage() {
     if (data) {
       allAssignments = JSON.parse(data);
     } else {
+      // Sample data — first time
       allAssignments = [
         { id: 1, subject: 'Web Technology', assignment: 'HTML Forms', deadline: '2026-09-30', status: 'Completed' },
         { id: 2, subject: 'JavaScript', assignment: 'DOM Manipulation', deadline: '2026-10-03', status: 'In Progress' },
@@ -167,7 +168,7 @@ function updateStatus(id, currentStatus) {
   }
 }
 
-// ============ FORM ============
+// ============ FORM HANDLING ============
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
