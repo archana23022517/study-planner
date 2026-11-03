@@ -1,4 +1,5 @@
-const API_URL = '/api/assignments';// Correct relative URL
+// Localhost test-ku ithu correct. Deploy pannumbothu ithai '/api/assignments' nu maathikonga.
+const API_URL = '/api/assignments';
 
 let allAssignments = [];
 let currentFilter = 'All';
@@ -24,20 +25,20 @@ const toast = document.getElementById('toast');
 
 async function fetchAssignments() {
   try {
-    const res = await fetch(API_URL); // GET request
+    const res = await fetch(API_URL);
     if (!res.ok) throw new Error('Failed to fetch');
     allAssignments = await res.json();
     renderAssignments();
   } catch (err) {
     showToast('Error loading assignments ❌', 'error');
-    console.error(err);
+    console.error('Fetch Error:', err);
   }
 }
 
 async function saveAssignment(data) {
   const id = editId.value;
   const url = id ? `${API_URL}/${id}` : API_URL;
-  const method = id ? 'PUT' : 'POST'; // POST for create, PUT for update
+  const method = id ? 'PUT' : 'POST';
   
   try {
     const res = await fetch(url, {
@@ -58,7 +59,7 @@ async function saveAssignment(data) {
 async function deleteAssignment(id) {
   if (!confirm('Are you sure you want to delete this assignment?')) return;
   try {
-    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); // DELETE request
+    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete');
     showToast('Assignment deleted 🗑️', 'success');
     fetchAssignments();
@@ -74,7 +75,7 @@ async function updateStatus(id, currentStatus) {
 
   try {
     const res = await fetch(`${API_URL}/${id}/status`, {
-      method: 'PATCH', // PATCH request for status
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
     });
