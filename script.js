@@ -1,9 +1,10 @@
-// Static version — localStorage (Backend illa)
+ const API_URL = '/proxy/5000/api/assignments';// Correct relative URL
 
 let allAssignments = [];
 let currentFilter = 'All';
 let currentSearch = '';
 
+// DOM Elements
 const form = document.getElementById('assignmentForm');
 const editId = document.getElementById('editId');
 const subjectInput = document.getElementById('subject');
@@ -19,41 +20,70 @@ const searchInput = document.getElementById('searchInput');
 const filterTabs = document.getElementById('filterTabs');
 const toast = document.getElementById('toast');
 
-// ============ LOCALSTORAGE ============
+// ============ API CALLS ============
 
-const STORAGE_KEY = 'study_planner_assignments';
-
-function loadFromStorage() {
+async function fetchAssignments() {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      allAssignments = JSON.parse(data);
-    } else {
-      // Sample data — first time
-      allAssignments = [
-        { id: 1, subject: 'Web Technology', assignment: 'HTML Forms', deadline: '2026-09-30', status: 'Completed' },
-        { id: 2, subject: 'JavaScript', assignment: 'DOM Manipulation', deadline: '2026-10-03', status: 'In Progress' },
-        { id: 3, subject: 'PHP', assignment: 'Form Validation', deadline: '2026-10-05', status: 'Pending' }
-      ];
-      saveToStorage();
-    }
+    const res = await fetch(API_URL); // GET request
+    if (!res.ok) throw new Error('Failed to fetch');
+    allAssignments = await res.json();
+    renderAssignments();
   } catch (err) {
-    console.error('Load error:', err);
-    allAssignments = [];
+    showToast('Error loading assignments ❌', 'error');
+    console.error(err);
   }
 }
 
-function saveToStorage() {
+async function saveAssignment(data) {
+  const id = editId.value;
+  const url = id ? `${API_URL}/${id}` : API_URL;
+  const method = id ? 'PUT' : 'POST'; // POST for create, PUT for update
+  
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allAssignments));
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to save');
+    showToast(id ? 'Assignment updated ✅' : 'Assignment added ✅', 'success');
+    resetForm();
+    fetchAssignments();
   } catch (err) {
-    console.error('Save error:', err);
+    showToast('Error saving assignment ❌', 'error');
+    console.error(err);
   }
 }
 
-function getNextId() {
-  if (allAssignments.length === 0) return 1;
-  return Math.max(...allAssignments.map(a => a.id)) + 1;
+async function deleteAssignment(id) {
+  if (!confirm('Are you sure you want to delete this assignment?')) return;
+  try {
+    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); // DELETE request
+    if (!res.ok) throw new Error('Failed to delete');
+    showToast('Assignment deleted 🗑️', 'success');
+    fetchAssignments();
+  } catch (err) {
+    showToast('Error deleting assignment ❌', 'error');
+  }
+}
+
+async function updateStatus(id, currentStatus) {
+  const statuses = ['Pending', 'In Progress', 'Completed'];
+  const nextIndex = (statuses.indexOf(currentStatus) + 1) % statuses.length;
+  const newStatus = statuses[nextIndex];
+
+  try {
+    const res = await fetch(`${API_URL}/${id}/status`, {
+      method: 'PATCH', // PATCH request for status
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (!res.ok) throw new Error('Failed to update');
+    showToast(`Status → ${newStatus} 🔄`, 'success');
+    fetchAssignments();
+  } catch (err) {
+    showToast('Error updating status ❌', 'error');
+  }
 }
 
 // ============ RENDER ============
@@ -74,10 +104,8 @@ function renderAssignments() {
   }
 
   document.getElementById('totalCount').textContent = allAssignments.length;
-  document.getElementById('pendingCount').textContent =
-    allAssignments.filter(a => a.status === 'Pending').length;
-  document.getElementById('completedCount').textContent =
-    allAssignments.filter(a => a.status === 'Completed').length;
+  document.getElementById('pendingCount').textContent = allAssignments.filter(a => a.status === 'Pending').length;
+  document.getElementById('completedCount').textContent = allAssignments.filter(a => a.status === 'Completed').length;
 
   if (filtered.length === 0) {
     assignmentsList.innerHTML = '';
@@ -130,44 +158,6 @@ function createCard(a) {
   `;
 }
 
-// ============ CRUD ============
-
-function saveAssignment(data) {
-  const id = editId.value;
-  if (id) {
-    const i = allAssignments.findIndex(a => a.id == id);
-    if (i > -1) allAssignments[i] = { ...allAssignments[i], ...data };
-    showToast('Assignment updated ✅', 'success');
-  } else {
-    allAssignments.push({ id: getNextId(), ...data });
-    showToast('Assignment added ✅', 'success');
-  }
-  saveToStorage();
-  resetForm();
-  renderAssignments();
-}
-
-function deleteAssignment(id) {
-  if (!confirm('Delete this assignment?')) return;
-  allAssignments = allAssignments.filter(a => a.id != id);
-  saveToStorage();
-  renderAssignments();
-  showToast('Deleted 🗑️', 'success');
-}
-
-function updateStatus(id, currentStatus) {
-  const statuses = ['Pending', 'In Progress', 'Completed'];
-  const nextIndex = (statuses.indexOf(currentStatus) + 1) % statuses.length;
-  const newStatus = statuses[nextIndex];
-  const i = allAssignments.findIndex(a => a.id == id);
-  if (i > -1) {
-    allAssignments[i].status = newStatus;
-    saveToStorage();
-    renderAssignments();
-    showToast(`Status → ${newStatus} 🔄`, 'success');
-  }
-}
-
 // ============ FORM HANDLING ============
 
 form.addEventListener('submit', (e) => {
@@ -179,7 +169,7 @@ form.addEventListener('submit', (e) => {
     status: statusInput.value
   };
   if (!data.subject || !data.assignment || !data.deadline) {
-    showToast('Fill all fields ⚠️', 'error');
+    showToast('Please fill all fields ⚠️', 'error');
     return;
   }
   saveAssignment(data);
@@ -191,7 +181,7 @@ function startEdit(id) {
   editId.value = a.id;
   subjectInput.value = a.subject;
   assignmentInput.value = a.assignment;
-  deadlineInput.value = a.deadline;
+  deadlineInput.value = a.deadline.split('T')[0];
   statusInput.value = a.status;
   formTitle.textContent = '✏️ Edit Assignment';
   submitBtn.textContent = 'Update Assignment';
@@ -209,6 +199,8 @@ function resetForm() {
 
 cancelBtn.addEventListener('click', resetForm);
 
+// ============ SEARCH & FILTER ============
+
 searchInput.addEventListener('input', (e) => {
   currentSearch = e.target.value;
   renderAssignments();
@@ -221,6 +213,8 @@ filterTabs.addEventListener('click', (e) => {
   currentFilter = e.target.dataset.filter;
   renderAssignments();
 });
+
+// ============ UTILITIES ============
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -240,5 +234,4 @@ function showToast(msg, type = 'success') {
 
 // ============ INIT ============
 
-loadFromStorage();
-renderAssignments();
+fetchAssignments();

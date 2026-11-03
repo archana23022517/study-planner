@@ -1,4 +1,4 @@
-const API_URL = 'https://63caa899c242-0af40c53-5300.ws6.app/api/assignments';
+const API_URL = '/api/assignments'; // Relative URL (server same port la run aaguthu)
 
 let allAssignments = [];
 let currentFilter = 'All';
@@ -36,12 +36,15 @@ async function fetchAssignments() {
 
 async function saveAssignment(data) {
   const id = editId.value;
-  const url = id 
-    ? `${API_URL}/update/${id}?${new URLSearchParams(data).toString()}`
-    : `${API_URL}/create?${new URLSearchParams(data).toString()}`;
+  const url = id ? `${API_URL}/${id}` : API_URL;
+  const method = id ? 'PUT' : 'POST';
   
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
     if (!res.ok) throw new Error('Failed to save');
     showToast(id ? 'Assignment updated ✅' : 'Assignment added ✅', 'success');
     resetForm();
@@ -55,7 +58,7 @@ async function saveAssignment(data) {
 async function deleteAssignment(id) {
   if (!confirm('Are you sure you want to delete this assignment?')) return;
   try {
-    const res = await fetch(`${API_URL}/delete/${id}`);
+    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete');
     showToast('Assignment deleted 🗑️', 'success');
     fetchAssignments();
@@ -70,7 +73,11 @@ async function updateStatus(id, currentStatus) {
   const newStatus = statuses[nextIndex];
 
   try {
-    const res = await fetch(`${API_URL}/update/${id}?status=${encodeURIComponent(newStatus)}`);
+    const res = await fetch(`${API_URL}/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
     if (!res.ok) throw new Error('Failed to update');
     showToast(`Status → ${newStatus} 🔄`, 'success');
     fetchAssignments();
@@ -97,10 +104,8 @@ function renderAssignments() {
   }
 
   document.getElementById('totalCount').textContent = allAssignments.length;
-  document.getElementById('pendingCount').textContent =
-    allAssignments.filter(a => a.status === 'Pending').length;
-  document.getElementById('completedCount').textContent =
-    allAssignments.filter(a => a.status === 'Completed').length;
+  document.getElementById('pendingCount').textContent = allAssignments.filter(a => a.status === 'Pending').length;
+  document.getElementById('completedCount').textContent = allAssignments.filter(a => a.status === 'Completed').length;
 
   if (filtered.length === 0) {
     assignmentsList.innerHTML = '';
