@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const assignmentRoutes = require('./routes/assignmentRoutes'); // 1. Route import
+const assignmentRoutes = require('./routes/assignmentRoutes');
 
 const app = express();
 const PORT = 5000;
@@ -9,15 +9,15 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// 2. Frontend files (index.html, script.js) serve panna
-app.use(express.static(path.join(__dirname, '..')));
+// Serve static files from the backend folder (where server.js is now)
+app.use(express.static(__dirname));
 
-// 3. ✅ Intha line thaan miss aagirunthathu! API routes-ai connect pannum
-app.use('/api/assignments', assignmentRoutes); 
+// API Routes
+app.use('/api/assignments', assignmentRoutes);
 
-// 4. Root URL-ku index.html anuppa
+// Root route
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
