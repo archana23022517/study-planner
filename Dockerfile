@@ -8,7 +8,7 @@ RUN cd backend && npm install
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 
-EXPOSE 5001
+EXPOSE 5000
 
 WORKDIR /app/backend
 
