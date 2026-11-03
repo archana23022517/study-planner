@@ -1,4 +1,4 @@
-const API_URL = 'https://89aa3be227b0-0af42cd7-5300.ws6.app/proxy/5001/api/assignments';
+const API_URL = 'https://63caa899c242-0af40c53-5300.ws6.app/api/assignments';
 
 let allAssignments = [];
 let currentFilter = 'All';
@@ -36,15 +36,12 @@ async function fetchAssignments() {
 
 async function saveAssignment(data) {
   const id = editId.value;
-  const url = id ? `${API_URL}/${id}` : API_URL;
-  const method = id ? 'PUT' : 'POST';
-
+  const url = id 
+    ? `${API_URL}/update/${id}?${new URLSearchParams(data).toString()}`
+    : `${API_URL}/create?${new URLSearchParams(data).toString()}`;
+  
   try {
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to save');
     showToast(id ? 'Assignment updated ✅' : 'Assignment added ✅', 'success');
     resetForm();
@@ -58,7 +55,7 @@ async function saveAssignment(data) {
 async function deleteAssignment(id) {
   if (!confirm('Are you sure you want to delete this assignment?')) return;
   try {
-    const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/delete/${id}`);
     if (!res.ok) throw new Error('Failed to delete');
     showToast('Assignment deleted 🗑️', 'success');
     fetchAssignments();
@@ -73,11 +70,7 @@ async function updateStatus(id, currentStatus) {
   const newStatus = statuses[nextIndex];
 
   try {
-    const res = await fetch(`${API_URL}/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus })
-    });
+    const res = await fetch(`${API_URL}/update/${id}?status=${encodeURIComponent(newStatus)}`);
     if (!res.ok) throw new Error('Failed to update');
     showToast(`Status → ${newStatus} 🔄`, 'success');
     fetchAssignments();
@@ -91,12 +84,10 @@ async function updateStatus(id, currentStatus) {
 function renderAssignments() {
   let filtered = allAssignments;
 
-  // Filter by status
   if (currentFilter !== 'All') {
     filtered = filtered.filter(a => a.status === currentFilter);
   }
 
-  // Search
   if (currentSearch.trim()) {
     const q = currentSearch.toLowerCase();
     filtered = filtered.filter(a =>
@@ -105,14 +96,12 @@ function renderAssignments() {
     );
   }
 
-  // Update stats
   document.getElementById('totalCount').textContent = allAssignments.length;
   document.getElementById('pendingCount').textContent =
     allAssignments.filter(a => a.status === 'Pending').length;
   document.getElementById('completedCount').textContent =
     allAssignments.filter(a => a.status === 'Completed').length;
 
-  // Render
   if (filtered.length === 0) {
     assignmentsList.innerHTML = '';
     emptyState.style.display = 'block';
@@ -122,7 +111,6 @@ function renderAssignments() {
   emptyState.style.display = 'none';
   assignmentsList.innerHTML = filtered.map(a => createCard(a)).join('');
 
-  // Attach event listeners
   document.querySelectorAll('[data-action="status"]').forEach(btn =>
     btn.addEventListener('click', () => updateStatus(btn.dataset.id, btn.dataset.status))
   );
