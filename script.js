@@ -1,4 +1,4 @@
- const API_URL = '/proxy/5000/api/assignments';// Correct relative URL
+const API_URL = '/api/assignments'; // Correct relative URL
 
 let allAssignments = [];
 let currentFilter = 'All';
