@@ -1,5 +1,5 @@
 {
-  "name": "study-planner-backend",
+  "name": "study-planner",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {

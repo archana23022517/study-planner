@@ -64,6 +64,7 @@ function toJSON(result) {
 
 initDB().catch(err => console.error('DB init error:', err));
 
+// GET ALL
 router.get('/', (req, res) => {
   if (!dbReady) return res.status(503).json({ error: 'DB not ready' });
   try {
@@ -74,6 +75,7 @@ router.get('/', (req, res) => {
   }
 });
 
+// GET ONE
 router.get('/:id', (req, res) => {
   if (!dbReady) return res.status(503).json({ error: 'DB not ready' });
   try {
@@ -89,6 +91,7 @@ router.get('/:id', (req, res) => {
   }
 });
 
+// CREATE (POST)
 router.post('/', (req, res) => {
   if (!dbReady) return res.status(503).json({ error: 'DB not ready' });
   const { subject, assignment, deadline, status } = req.body;
@@ -107,6 +110,7 @@ router.post('/', (req, res) => {
   }
 });
 
+// UPDATE (PUT)
 router.put('/:id', (req, res) => {
   if (!dbReady) return res.status(503).json({ error: 'DB not ready' });
   const { subject, assignment, deadline, status } = req.body;
@@ -120,6 +124,7 @@ router.put('/:id', (req, res) => {
   }
 });
 
+// PATCH STATUS
 router.patch('/:id/status', (req, res) => {
   if (!dbReady) return res.status(503).json({ error: 'DB not ready' });
   const { status } = req.body;
@@ -132,6 +137,7 @@ router.patch('/:id/status', (req, res) => {
   }
 });
 
+// DELETE
 router.delete('/:id', (req, res) => {
   if (!dbReady) return res.status(503).json({ error: 'DB not ready' });
   try {

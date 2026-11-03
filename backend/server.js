@@ -1,33 +1,24 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const assignmentRoutes = require('./routes/assignmentRoutes');
+const assignmentRoutes = require('./routes/assignmentRoutes'); // 1. Route import
 
 const app = express();
+const PORT = 5000;
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.options('*', cors());
-
+app.use(cors());
 app.use(express.json());
 
-// ✅ Root folder la irundhu static files serve pannum (index.html, style.css, script.js)
+// 2. Frontend files (index.html, script.js) serve panna
 app.use(express.static(path.join(__dirname, '..')));
 
-// ✅ API routes
-app.use('/api/assignments', assignmentRoutes);
+// 3. ✅ Intha line thaan miss aagirunthathu! API routes-ai connect pannum
+app.use('/api/assignments', assignmentRoutes); 
 
-// ✅ Root la irukkura index.html serve pannum
+// 4. Root URL-ku index.html anuppa
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
-
-// ✅ Port
-const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
