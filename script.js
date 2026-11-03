@@ -1,5 +1,6 @@
 // Localhost test-ku ithu correct. Deploy pannumbothu ithai '/api/assignments' nu maathikonga.
-const API_URL = '/api/assignments';
+const API_URL = '/proxy/5000/api/assignments';
+
 
 let allAssignments = [];
 let currentFilter = 'All';
