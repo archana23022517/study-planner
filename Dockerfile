@@ -10,4 +10,4 @@ COPY . .
 EXPOSE 5000
 
 # Correct start command
-CMD ["node", "server.js"]
+CMD ["node", "backend/server.js"]
